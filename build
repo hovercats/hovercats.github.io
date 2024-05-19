@@ -1,0 +1,10 @@
+#!/bin/sh
+
+set -xe
+
+for file in index src log; do
+	mkdir -p docs
+	cat header.html > "docs/$file.html"
+	smu "src/$file.md" >> "docs/$file.html"
+	printf '</body>\n</html>' >> "docs/$file.html"
+done
