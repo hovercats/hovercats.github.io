@@ -1,5 +1,3 @@
-#### [$HOME](/) - [/src](/src) - [/var/log](/log)
-
 I have several notable projects:
 
 - [rcinit](https://github.com/hovercats/rcinit)

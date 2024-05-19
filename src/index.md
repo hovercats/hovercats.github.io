@@ -1,5 +1,3 @@
-#### [$HOME](/) - [/src](/src) - [/var/log](/log)
-
 So, you've stumbled upon my website.
 
 
