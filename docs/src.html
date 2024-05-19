@@ -15,49 +15,32 @@
 	</style>
 </head>
 <body>
-<h4><a href="/">$HOME</a> - <a href="/src">/src</a> - <a href="/log">/var/log</a></h4>
+<h4><a href="/index.html">$HOME</a> - <a href="/src.html">/src</a> - <a href="/log.html">/var/log</a></h4>
 <p>I have several notable projects:</p>
 <ul>
 <li><a href="https://github.com/hovercats/rcinit">rcinit</a>
 <ul>
 <li>a really small init script, written in plan9's rc shell</li>
-<li>inspired by <a href="https://github.com/cemkeylan/shinit">shinit</a>, <a href="http://core.suckless.org/sinit">sinit</a> and the like, I really wanted to</li>
+<li>inspired by <a href="https://github.com/cemkeylan/shinit">shinit</a>, <a href="http://core.suckless.org/sinit">sinit</a> and the like, I really wanted to write one in rc instead</li>
 </ul>
 </li>
-</ul>
-<p>write one in rc instead
-<ul>
 <li><a href="https://github.com/hovercats/shsm">shsm</a>
 <ul>
-<li>I really wanted to get rid of busybox's runit, and have a service manager</li>
+<li>I really wanted to get rid of busybox's runit, and have a service manager written in POSIX sh.</li>
+<li>I then found <a href="http://r-36.net/scm/svc/log.html">svc</a>, which was (mostly) exacly what I was looking for, although, with some flaws. So I made (what I would call) improvements</li>
 </ul>
 </li>
-</ul>
-<p>written in POSIX sh.
-  - I then found <a href="http://r-36.net/scm/svc/log.html">svc</a>, which was (mostly) exacly what I was looking for,
-although, with some flaws. So I made (what I would call) improvements
-<ul>
 <li><a href="https://github.com/hovercats/rcsm">rcsm</a>
 <ul>
-<li>Superseeding shsm, I wanted to step up my game from rcinit, and write</li>
+<li>Superseeding shsm, I wanted to step up my game from rcinit, and write something a bit more complicated than rcsm.</li>
+<li>based on the same idea as shsm, I put together a service manager i roughly half the size of shsm.</li>
 </ul>
-<p>something a bit more complicated than rcsm.
-<ul>
-<li>based on the same idea as shsm, I put together a service manager i roughly</li>
-</ul>
-</p>
 </li>
-</ul>
-<p>half the size of shsm.
-<ul>
 <li><a href="https://github.com/hovercats/kiss-dumpsterfire">kiss-dumpsterfire</a>
 <ul>
 <li>my KISS repo, which hosts just about all of the packages on my system.</li>
 </ul>
 </li>
 </ul>
-</p>
-</p>
-</p>
 </body>
 </html>
