@@ -9,5 +9,5 @@ I have several notable projects:
 - [rcsm](https://github.com/hovercats/rcsm)
   - Superseeding shsm, I wanted to step up my game from rcinit, and write something a bit more complicated than rcsm.
   - based on the same idea as shsm, I put together a service manager i roughly half the size of shsm.
-- [kiss-dumpsterfire](https://github.com/hovercats/kiss-dumpsterfire)
-  - my KISS repo, which hosts just about all of the packages on my system.
+- [oakiss](https://github.com/hovercats/oakiss)
+  - my custom OS, based on [Oasis Linux](https://github.com/oasislinux/oasis) with [KISS](https://codeberg.org/kiss-community/kiss) on top.
