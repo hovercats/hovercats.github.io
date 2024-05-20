@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<title>$HOME</title>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<style>
+		body{
+			font-family:  monospace,monospace;
+			margin-left:  auto;
+			margin-right: auto;
+			padding:      1em;
+			max-width:    50em;
+			}
+	</style>
+</head>
+<body>
+<h4><a href="/index.html">$HOME</a> - <a href="/src.html">/src</a> - <a href="/log.html">/var/log</a></h4>
+<h4>Create a tiny init in rc</h4>
+<p><strong>DISCLAIMER</strong>: Always do your own research, and don't blindly trust some random blogpost on the internet.
+I also made this blogpost so it might peak peoples interest in the topics in this post, including my own.<br />  </p>
+<p>Today, we will do a writeup on creating a small init, and init scripts, but opposed to writing them in <code>bash</code> or POSIX <code>sh</code>, we will write it in <code>rc</code>.<br />  
+Despite <code>rc</code> not being specified by <a href="https://en.wikipedia.org/wiki/POSIX">POSIX</a>, we will still try to avoid any non-POSIX utilities, so that our scripts remains as portable as possible.</p>
+<p>What is <a href="http://doc.cat-v.org/plan_9/4th_edition/papers/rc"><code>rc</code></a> you say?<br />  
+<code>rc</code> is the shell used by <a href="https://en.wikipedia.org/wiki/Plan_9_from_Bell_Labs">plan9</a>.<br />  
+<code>rc</code> has since been ported to various OS's, like Linux, and BSD's (maybe others aswell? not sure).<br />  
+In comparisson to more mainstream shells like <a href="https://www.gnu.org/software/bash/"><code>bash</code></a> or <a href="http://kornshell.com/"><code>ksh</code></a>, <code>rc</code> is a lot smaller.<br />  
+This might imply that <code>rc</code> <em>lacks</em> features, but this is a feature, and not a bug.</p>
+<p>Lets also give a crude explenation of the boot process of a Linux system:
+<ol>
+<li>Bootloader starts, which loads up the kernel. (This is optional, as we can use the kernel as bootloader with <a href="https://www.kernel.org/doc/html/latest/admin-guide/efi-stub.html">efistub</a>)</li>
+<li>kernel starts, and calls the init (by call, we mean run, or start).</li>
+<li>init starts and calls your initscript</li>
+<li>login prompt should now be present and the OS has finished its boot process.</li>
+</ol>
+</p>
+<p>Anyway, lets get on with it, and create a simple init for linux.<br />  
+Lets start with the actual init, which might located as <code>/bin/init</code>, depending on your system.<br />  
+The init is the OS's first process to start. (Also refered to as PID 1 (Process ID 1)).<br />  
+If your init is not PID 1, something is wrong, and the init should exit with and error.</p>
+<p>So, the first thing your init probably should do, is check wether its PID 1 or not.<br />  
+In <code>rc</code> it can look something like this:<br />  </p>
+<pre><code>#!/bin/rc  
+test $pid -eq 1
+</code></pre>
+<p>In <code>rc</code>, <code>$pid</code> is a special variable, which contains the PID of the running process.<br />  
+In <code>bash</code> and other shells, the equivalant would be <code>$$</code>.</p>
+<p>Next on the list would be to exit, should <a href="http://www.opengroup.org/onlinepubs/9699919799/utilities/test.html#top"><code>test</code></a> not give us a exit code of 0.<br />  
+We then append; <code>|| exit 1</code> at the end of our script, and it should now exit, if <code>test</code> returns a non-zero value. (0 here is true, and &gt;0 is false)<br />  
+The numerical value after exit, is called an <a href="http://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#tag_18_08">exit code</a>, and everything &gt;0, is considered an error.
+Now we should have somthing like this:<br />  </p>
+<pre><code>#!/bin/rc  
+test $pid -eq 1 || exit 1
+</code></pre>
+<p>Now that our init has checked if its PID is 1, we can now call our initscript.<br />  
+Initscripts is not to be confused with the init, as they're different componets of the init system.<br />  
+The initscripts job for the most part be to mount your drives, and start your service manager.
+Initscripts can in a lot of cases do a lot more than this, but in this scenario, everything else is superflous.<br />  </p>
+<p>Moving forward, we can append now <code>/etc/rc.init</code>, so that our init can start the initscript.<br />  
+Your initscript might be located elsewhere, or named something else.<br />  
+(I.e. Kiss Linux has them located in <code>/lib/init/rc.boot</code>)</p>
+<p>Our init should now look like this:<br />  </p>
+<pre><code>#!/bin/rc  
+test $pid -eq 1 || exit 1  
+/etc/rc.init
+</code></pre>
+<p>Now our init has done more or less everything its supposed to.
+The boot process will now continue with our initscript (<code>/etc/rc.init</code>)
+But before we move on to write our own initscript, we would need to make sure that our init does not exit.</p>
+<p>To avoid our init to exit, we will use a while loop, acompanied by the <a href="https://pubs.opengroup.org/onlinepubs/9699919799/utilities/wait.html#top"><code>wait</code></a> command and our previously mentioned <code>$pid</code> variable.
+We will use <code>while()</code> which is the equivalant of <code>while :</code> on regular shell (in this case both <code>()</code> and <code>:</code> is interpreted as <a href="https://pubs.opengroup.org/onlinepubs/9699919799/utilities/true.html#top"><em>true</em></a>).<br />  
+This means that aslong as the value is true (which it is, and always is), the loop will continue.<br />  
+An infinite loop if you will.
+We will then run <code>wait $pid</code>, this will wait for <code>$pid</code> to exit. Which doesnt occour.</p>
+<p>Our inits final form can now look something like this:</p>
+<pre><code>#!/bin/rc
+test $pid -eq 1 || exit 1
+/etc/rc.init
+wait(){wait $pid)}
+</code></pre>
+<p>We now have a init in measly 3 lines of code. Which is pretty small, even in comparisson to other small inits like <a href="https://git.suckless.org/sinit"><code>sinit</code></a>, which is just shy of 100 LOC. Although, <code>sinit</code> is written in C, and not <code>rc</code>.</p>
+<p>Now for the initscripts;
+We will start with <code>/etc/rc.init</code>, which is the part which is ran during the boot process.
+Our <code>/etc/rc.init</code> might look something like this:</p>
+<pre><code>#!/bin/rc
+umask 022
+
+mkdir -p /dev/pts
+mkdir -p /dev/shm
+</code></pre>
+<pre><code>mount -t proc none /proc
+mount -o remount,rw /
+mount -a
+</code></pre>
+<p>Lets run through them and give a brief explenation what they do:</p>
+<ul>
+<li><code>umask 022</code>
+<ul>
+<li><a href="https://pubs.opengroup.org/onlinepubs/9699919799/utilities/umask.html#top"><code>umask</code></a> sets the default permissions across the system in general.
+<ul>
+<li>Usually this is set in <code>/etc/profile</code>, but here it is set because <code>/etc/profile</code> has yet to take effect.
+<ul>
+<li>However, <code>rc</code> does not read from <code>/etc/profile</code>, so even if <code>/etc/profile</code> had taken effect at this point, <code>rc</code> would remain unaffected.</li>
+</ul>
+</li>
+<li>There is also commands being ran here which is affected by our <code>umask</code> value.</li>
+<li>Most distrobutions set 022 here, so that all users can read and execute all newly created files.
+<ul>
+<li><a href="https://wiki.archlinux.org/title/Umask">Arch wiki</a> has a write-up on what the numerical values means.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>mkdir -p /dev/pts</code>
+<ul>
+<li>We need to create this directory, as it seems the kernel doesnt do this for us.</li>
+<li>This creates the space for psuoedo-terminal interfaces we need for our system to work
+<ul>
+<li>see <a href="https://www.man7.org/linux/man-pages/man4/pts.4.html">pts(4)</a> and <a href="https://www.man7.org/linux/man-pages/man4/pts.4.html">pty(7)</a> for more details</li>
+<li>We then mount this later with our <a href="https://www.man7.org/linux/man-pages/man5/fstab.5.html"><code>/etc/fstab</code></a> as <a href="https://www.man7.org/linux/man-pages/man4/pts.4.html">devpts</a>.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>mkdir -p /dev/shm</code>
+<ul>
+<li>We need to create this directory, as it seems the kernel doesnt do this for us.</li>
+<li><code>/dev/shm</code> is later mounted as <code>tmpfs</code> (as listed in <code>/etc/fstab</code>), and houses temporarly files.</li>
+</ul>
+</li>
+<li><code>mount -t proc none /proc</code>
+<ul>
+<li>We need to mount <code>/proc</code> prematurly, even though its listed in <code>/etc/fstab</code> to be mounted later.</li>
+<li>We cant successfully boot our system without it.</li>
+</ul>
+</li>
+<li><code>mount -o remount,rw /</code>
+<ul>
+<li>Remount root partition with read-write permissions.</li>
+<li>When booting, the kernel will mount root partition with read-only.</li>
+</ul>
+</li>
+<li><code>mount -a</code>
+<ul>
+<li>Mount all partitions according to your <code>/etc/fstab</code></li>
+</ul>
+</li>
+</ul>
+<p>At this stage, we should now have a successfully booted system.
+However, for the keen eyed among you, who might be asking yourself:</p>
+<blockquote><p><em>Where is my login prompt?</em></p>
+</blockquote>
+<p>This is correct. We have yet to start any <code>getty</code>'s.
+We could append <code>/bin/getty /dev/tty1 linux</code> to our initscript, and have login prompt ready for us.
+However, if you log out, or type in the wrong password, <code>login</code> would not give you a new login prompt, and youd be stuck with a blinking prompt.</p>
+<p>This is because we have to run the command in a <code>while</code> loop, or using a service manager giving us the same functionality.
+Using a service manager for this  gives you more granual control over how many <code>getty</code>'s you wish to run. Be it 2, or 12.<br />  
+Chances are youd likely to be wanting to run atleast 2 tty's anyway, to have a way out, should your GUI freeze up on you.</p>
+<p>Now that we have a working init, and initscript for booting up, we can now turn to how to properly shutdown our machine.
+Obviously we could just rip out the powercable, or force the computer of, but we dont wanna mess up our partitions now do we?<br />  
+Our <code>/etc.rc.shutdown</code> can look something like this:</p>
+<pre><code>#!/bin/rc
+
+kill -s TERM -1
+sleep 1
+kill -s KILL -1
+
+swapoff -a
+
+mount -o remount,ro /
+sync
+
+umount -a
+
+wait
+
+switch($1) {
+case -p
+	halt -p
+case -r
+	halt -r
+}
+</code></pre>
+<p>Again, lets run through what they mean, and why theyre there.</p>
+<ul>
+<li><a href="https://pubs.opengroup.org/onlinepubs/9699919799/utilities/kill.html#top"><code>kill</code></a> <code>-s TERM -1</code>
+<ul>
+<li>send TERM signal to all PIDs, except PID 1 (we omit this with the <code>-1</code> flag)</li>
+</ul>
+</li>
+<li><a href="https://pubs.opengroup.org/onlinepubs/9699919799/utilities/sleep.html#top"><code>sleep</code></a> <code>1</code>
+<ul>
+<li>We need to wait a bit, so that programs can properly terminate on their own.</li>
+</ul>
+</li>
+<li><code>kill -s KILL -1</code>
+<ul>
+<li>This is the same command as above, but instead of <code>TERM</code>, we send <code>KILL</code> signal instead.</li>
+<li>This is mostly to stop any leftover processes still running</li>
+</ul>
+</li>
+<li><code>mount -o remount,ro /</code>
+<ul>
+<li>We now remount our root partition with read-only permissions.</li>
+</ul>
+</li>
+<li><code>sync</code>
+<ul>
+<li>We need to syncronize the disk(s), so that any unwritten data is getting written to disk, to avoid data loss.</li>
+</ul>
+</li>
+<li><code>umount -a</code>
+<ul>
+<li>Now umount all disk according to <code>/etc/fstab</code></li>
+</ul>
+</li>
+<li><code>wait</code>
+<ul>
+<li>Wait for all running processes within the script to finish, before we move any further.</li>
+</ul>
+</li>
+<li>and last:</li>
+</ul>
+<pre><code>switch($1) {
+case -p
+	halt -p
+case -r
+	halt -r
+}
+</code></pre>
+<ul>
+<li>Here we have the commands to actually poweroff, or reboot the machine.</li>
+<li>I use <code>halt</code> from <a href="https://git.suckless.org/ubase/">ubase</a>, made by <a href="https://suckless.org/">suckless</a></li>
+<li><code>halt</code> in our case will <strong>imediately</strong> turn of your machine, so its important for disks to have been properly unmounted before we run this, so we avoid data loss</li>
+</ul>
+<p>At this point, we now have a way to boot our machine, aswell as shut it down properly.
+I Hoped this peaked your interest, maybe you learned something new, or made you look into some of these topics.</p>
+</body>
+</html>

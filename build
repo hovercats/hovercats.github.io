@@ -2,8 +2,9 @@
 
 set -xe
 
-for file in index src log; do
-	mkdir -p docs
+for file in index src log posts/2024-05-20; do
+	mkdir -p docs/posts
+	touch "docs/$file.html"
 	cat header.html > "docs/$file.html"
 	smu "src/$file.md" >> "docs/$file.html"
 	printf '</body>\n</html>' >> "docs/$file.html"
