@@ -16,19 +16,19 @@
 </head>
 <body>
 <h4><a href="/index.html">$HOME</a> - <a href="/src.html">/src</a> - <a href="/log.html">/var/log</a></h4>
-<h4>Create a tiny init in rc</h4>
-<p><strong>DISCLAIMER</strong>: Always do your own research, and don't blindly trust some random blogpost on the internet.
-I also made this blogpost so it might peak peoples interest in the topics in this post, including my own.<br />  </p>
+<h4>Creating a tiny init in rc</h4>
+<p><strong>DISCLAIMER</strong>: I take no responsability if you attempt to use this, and end up with a broken system.
+Always remember to do your own research. Also: Have fun.</p>
 <p>Today, we will do a writeup on creating a small init, and init scripts, but opposed to writing them in <code>bash</code> or POSIX <code>sh</code>, we will write it in <code>rc</code>.<br />  
 Despite <code>rc</code> not being specified by <a href="https://en.wikipedia.org/wiki/POSIX">POSIX</a>, we will still try to avoid any non-POSIX utilities, so that our scripts remains as portable as possible.</p>
 <p>What is <a href="http://doc.cat-v.org/plan_9/4th_edition/papers/rc"><code>rc</code></a> you say?<br />  
-<code>rc</code> is the shell used by <a href="https://en.wikipedia.org/wiki/Plan_9_from_Bell_Labs">plan9</a>.<br />  
-<code>rc</code> has since been ported to various OS's, like Linux, and BSD's (maybe others aswell? not sure).<br />  
+<code>rc</code> is the shell (or command interpreter to be correct) used by <a href="https://en.wikipedia.org/wiki/Plan_9_from_Bell_Labs">plan9</a>.<br />  
+<code>rc</code> has since been ported to various OS's, like Linux, and BSD's.
 In comparisson to more mainstream shells like <a href="https://www.gnu.org/software/bash/"><code>bash</code></a> or <a href="http://kornshell.com/"><code>ksh</code></a>, <code>rc</code> is a lot smaller.<br />  
-This might imply that <code>rc</code> <em>lacks</em> features, but this is a feature, and not a bug.</p>
+This might imply that <code>rc</code> <em>lacks</em> features, but this is a feature, not a bug.</p>
 <p>Lets also give a crude explenation of the boot process of a Linux system:
 <ol>
-<li>Bootloader starts, which loads up the kernel. (This is optional, as we can use the kernel as bootloader with <a href="https://www.kernel.org/doc/html/latest/admin-guide/efi-stub.html">efistub</a>)</li>
+<li>Bootloader starts, which loads up the kernel (On UEFI systems, this is optional with the use of <a href="https://www.kernel.org/doc/html/latest/admin-guide/efi-stub.html">efistub</a>).</li>
 <li>kernel starts, and calls the init (by call, we mean run, or start).</li>
 <li>init starts and calls your initscript</li>
 <li>login prompt should now be present and the OS has finished its boot process.</li>
@@ -37,7 +37,7 @@ This might imply that <code>rc</code> <em>lacks</em> features, but this is a fea
 <p>Anyway, lets get on with it, and create a simple init for linux.<br />  
 Lets start with the actual init, which might located as <code>/bin/init</code>, depending on your system.<br />  
 The init is the OS's first process to start. (Also refered to as PID 1 (Process ID 1)).<br />  
-If your init is not PID 1, something is wrong, and the init should exit with and error.</p>
+If your init is not PID 1, something is wrong, and the init should exit with an error.</p>
 <p>So, the first thing your init probably should do, is check wether its PID 1 or not.<br />  
 In <code>rc</code> it can look something like this:<br />  </p>
 <pre><code>#!/bin/rc  
@@ -233,7 +233,7 @@ case -r
 <ul>
 <li>Here we have the commands to actually poweroff, or reboot the machine.</li>
 <li>I use <code>halt</code> from <a href="https://git.suckless.org/ubase/">ubase</a>, made by <a href="https://suckless.org/">suckless</a></li>
-<li><code>halt</code> in our case will <strong>imediately</strong> turn of your machine, so its important for disks to have been properly unmounted before we run this, so we avoid data loss</li>
+<li><code>halt</code> in our case will <strong>imediately</strong> shut down your machine, so its important for disks to have been properly unmounted before we run this, so we avoid data loss</li>
 </ul>
 <p>At this point, we now have a way to boot our machine, aswell as shut it down properly.
 I Hoped this peaked your interest, maybe you learned something new, or made you look into some of these topics.</p>
