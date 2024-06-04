@@ -41,8 +41,7 @@ If your init is not PID 1, something is wrong, and the init should exit with an 
 <p>So, the first thing your init probably should do, is check wether its PID 1 or not.<br />  
 In <code>rc</code> it can look something like this:<br />  </p>
 <pre><code>#!/bin/rc  
-test $pid -eq 1
-</code></pre>
+test $pid -eq 1</code></pre>
 <p>In <code>rc</code>, <code>$pid</code> is a special variable, which contains the PID of the running process.<br />  
 In <code>bash</code> and other shells, the equivalant would be <code>$$</code>.</p>
 <p>Next on the list would be to exit, should <a href="http://www.opengroup.org/onlinepubs/9699919799/utilities/test.html#top"><code>test</code></a> not give us a exit code of 0.<br />  
@@ -50,8 +49,7 @@ We then append; <code>|| exit 1</code> at the end of our script, and it should n
 The numerical value after exit, is called an <a href="http://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#tag_18_08">exit code</a>, and everything &gt;0, is considered an error.
 Now we should have somthing like this:<br />  </p>
 <pre><code>#!/bin/rc  
-test $pid -eq 1 || exit 1
-</code></pre>
+test $pid -eq 1 || exit 1</code></pre>
 <p>Now that our init has checked if its PID is 1, we can now call our initscript.<br />  
 Initscripts is not to be confused with the init, as they're different componets of the init system.<br />  
 The initscripts job for the most part be to mount your drives, and start your service manager.
@@ -62,8 +60,7 @@ Your initscript might be located elsewhere, or named something else.<br />
 <p>Our init should now look like this:<br />  </p>
 <pre><code>#!/bin/rc  
 test $pid -eq 1 || exit 1  
-/etc/rc.init
-</code></pre>
+/etc/rc.init</code></pre>
 <p>Now our init has done more or less everything its supposed to.
 The boot process will now continue with our initscript (<code>/etc/rc.init</code>)
 But before we move on to write our own initscript, we would need to make sure that our init does not exit.</p>
@@ -76,8 +73,7 @@ We will then run <code>wait $pid</code>, this will wait for <code>$pid</code> to
 <pre><code>#!/bin/rc
 test $pid -eq 1 || exit 1
 /etc/rc.init
-wait(){wait $pid)}
-</code></pre>
+wait(){wait $pid)}</code></pre>
 <p>We now have a init in measly 3 lines of code. Which is pretty small, even in comparisson to other small inits like <a href="https://git.suckless.org/sinit"><code>sinit</code></a>, which is just shy of 100 LOC. Although, <code>sinit</code> is written in C, and not <code>rc</code>.</p>
 <p>Now for the initscripts;
 We will start with <code>/etc/rc.init</code>, which is the part which is ran during the boot process.
@@ -86,12 +82,10 @@ Our <code>/etc/rc.init</code> might look something like this:</p>
 umask 022
 
 mkdir -p /dev/pts
-mkdir -p /dev/shm
-</code></pre>
+mkdir -p /dev/shm</code></pre>
 <pre><code>mount -t proc none /proc
 mount -o remount,rw /
-mount -a
-</code></pre>
+mount -a</code></pre>
 <p>Lets run through them and give a brief explenation what they do:</p>
 <ul>
 <li><code>umask 022</code>
@@ -181,13 +175,14 @@ case -p
 	halt -p
 case -r
 	halt -r
-}
-</code></pre>
+}</code></pre>
 <p>Again, lets run through what they mean, and why theyre there.</p>
 <ul>
 <li><a href="https://pubs.opengroup.org/onlinepubs/9699919799/utilities/kill.html#top"><code>kill</code></a> <code>-s TERM -1</code>
 <ul>
-<li>send TERM signal to all PIDs, except PID 1 (we omit this with the <code>-1</code> flag)</li>
+<li>send TERM signal to all PIDs above PID 1. (with the -1 flag. -1 is not however not specified by POSIX)</li>
+<li>an alternative would be to use <a href="https://linux.die.net/man/8/killall5"><code>killall5</code></a>.</li>
+<li><code>killall5</code> is unfortunatly also not specified by POSIX.</li>
 </ul>
 </li>
 <li><a href="https://pubs.opengroup.org/onlinepubs/9699919799/utilities/sleep.html#top"><code>sleep</code></a> <code>1</code>
@@ -228,13 +223,15 @@ case -p
 	halt -p
 case -r
 	halt -r
-}
-</code></pre>
+}</code></pre>
 <ul>
 <li>Here we have the commands to actually poweroff, or reboot the machine.</li>
-<li>I use <code>halt</code> from <a href="https://git.suckless.org/ubase/">ubase</a>, made by <a href="https://suckless.org/">suckless</a></li>
+<li>I use <a href=" https://linux.die.net/man/8/halt"><code>halt</code></a> from <a href="https://git.suckless.org/ubase/">ubase</a>, made by <a href="https://suckless.org/">suckless</a></li>
 <li><code>halt</code> in our case will <strong>imediately</strong> shut down your machine, so its important for disks to have been properly unmounted before we run this, so we avoid data loss</li>
+<li><code>halt</code> is unfortunatly also not specified by POSIX</li>
 </ul>
+<p>Unfortunatly our <code>rc.shutdown</code> script is in a less ideal state due to non-POSIX tootls.<br />  
+Another alternative, would be to write a portable script in C, like <a href="https://github.com/oasislinux/oasis/blob/master/pkg/sinit/shutdown.c">Oasis Linux</a> does.</p>
 <p>At this point, we now have a way to boot our machine, aswell as shut it down properly.
 I Hoped this peaked your interest, maybe you learned something new, or made you look into some of these topics.</p>
 </body>
